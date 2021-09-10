@@ -13,6 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dataset import SpeechDataset
 from model import Encoder, Decoder
+from util import fix_config
 
 
 def save_checkpoint(encoder, decoder, optimizer, amp, scheduler, step, checkpoint_dir):
@@ -29,8 +30,10 @@ def save_checkpoint(encoder, decoder, optimizer, amp, scheduler, step, checkpoin
     print("Saved checkpoint: {}".format(checkpoint_path.stem))
 
 
-@hydra.main(config_path="config/train.yaml")
+@hydra.main(config_path="config", config_name="train.yaml")
 def train_model(cfg):
+    cfg = fix_config(cfg)
+
     tensorboard_path = Path(utils.to_absolute_path("tensorboard")) / cfg.checkpoint_dir
     checkpoint_dir = Path(utils.to_absolute_path(cfg.checkpoint_dir))
     writer = SummaryWriter(tensorboard_path)

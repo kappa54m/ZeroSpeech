@@ -10,6 +10,8 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from tqdm import tqdm
 
+from util import fix_config
+
 
 def preemphasis(x, preemph):
     return scipy.signal.lfilter([1, -preemph], [1], x)
@@ -29,8 +31,8 @@ def mulaw_decode(y, mu):
 
 def process_wav(wav_path, out_path, sr=160000, preemph=0.97, n_fft=2048, n_mels=80, hop_length=160,
                 win_length=400, fmin=50, top_db=80, bits=8, offset=0.0, duration=None):
-    wav, _ = librosa.load(wav_path.with_suffix(".wav"), sr=sr,
-                          offset=offset, duration=duration)
+    wav, _ = librosa.load(str(wav_path.with_suffix(".wav")), sr=sr,
+                        offset=offset, duration=duration)
     wav = wav / np.abs(wav).max() * 0.999
 
     mel = librosa.feature.melspectrogram(preemphasis(wav, preemph),
@@ -51,8 +53,10 @@ def process_wav(wav_path, out_path, sr=160000, preemph=0.97, n_fft=2048, n_mels=
     return out_path, logmel.shape[-1]
 
 
-@hydra.main(config_path="config/preprocessing.yaml")
+@hydra.main(config_path="config", config_name="preprocessing.yaml")
 def preprocess_dataset(cfg):
+    cfg = fix_config(cfg)
+
     in_dir = Path(utils.to_absolute_path(cfg.in_dir))
     out_dir = Path(utils.to_absolute_path("datasets")) / str(cfg.dataset.dataset)
     out_dir.mkdir(parents=True, exist_ok=True)

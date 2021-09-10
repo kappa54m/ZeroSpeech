@@ -6,15 +6,18 @@ from pathlib import Path
 import torch
 import numpy as np
 import librosa
+import soundfile
 from tqdm import tqdm
 import pyloudnorm
 
 from preprocess import preemphasis
 from model import Encoder, Decoder
+from util import fix_config
 
 
-@hydra.main(config_path="config/convert.yaml")
+@hydra.main(config_path="config", config_name="convert.yaml")
 def convert(cfg):
+    cfg = fix_config(cfg)
     dataset_path = Path(utils.to_absolute_path("datasets")) / cfg.dataset.path
     with open(dataset_path / "speakers.json") as file:
         speakers = sorted(json.load(file))
@@ -48,7 +51,7 @@ def convert(cfg):
     for wav_path, speaker_id, out_filename in tqdm(synthesis_list):
         wav_path = in_dir / wav_path
         wav, _ = librosa.load(
-            wav_path.with_suffix(".wav"),
+            str(wav_path.with_suffix(".wav")),
             sr=cfg.preprocessing.sr)
         ref_loudness = meter.integrated_loudness(wav)
         wav = wav / np.abs(wav).max() * 0.999
@@ -74,7 +77,7 @@ def convert(cfg):
         output_loudness = meter.integrated_loudness(output)
         output = pyloudnorm.normalize.loudness(output, output_loudness, ref_loudness)
         path = out_dir / out_filename
-        librosa.output.write_wav(path.with_suffix(".wav"), output.astype(np.float32), sr=cfg.preprocessing.sr)
+        soundfile.write(str(path.with_suffix(".wav")), output.astype(np.float32), samplerate=cfg.preprocessing.sr)
 
 
 if __name__ == "__main__":
