@@ -126,3 +126,12 @@ This work is based on:
     
 3.  van den Oord, Aaron, and Oriol Vinyals. ["Neural discrete representation learning."](https://arxiv.org/abs/1711.00937)
     Advances in Neural Information Processing Systems. 2017.
+
+## 연구 논문들
+1. [bshall/ZeroSpeech](https://github.com/bshall/ZeroSpeech) 모델 전체: Chorowski, Jan, et al. ["Unsupervised speech representation learning using wavenet autoencoders."](https://arxiv.org/abs/1901.08810)
+2. bshall/ZeroSpeech 모델에 사용된 디코더 WaveNet 모델: Lorenzo-Trueba, Jaime, et al. ["Towards achieving robust universal neural vocoding."](https://arxiv.org/abs/1811.06292)
+3. bshall/ZeroSpeech 모델의 디코더와 최첨단 오디오 합성의 기본이 되는 [WaveNet](https://deepmind.com/blog/article/wavenet-generative-model-raw-audio): ["WaveNet: A Generative Model for Raw Audio"](https://arxiv.org/pdf/1609.03499.pdf)
+4. WaveNet의 기본이 되는 [Autoregressive 신경망](https://ml.berkeley.edu/blog/posts/AR_intro/) PixelRNN/PixelCNN:
+- ["Pixel Recurrent Neural Networks"](https://arxiv.org/abs/1601.06759)
+- ["Conditional Image Generation with PixelCNN Decoders"](https://arxiv.org/abs/1606.05328)
+5. bshall/ZeroSpeech 모델의 인코더에 사용되는 오토인코더 [VQ-VAE](https://ml.berkeley.edu/blog/posts/vq-vae/): van den Oord, Aaron, and Oriol Vinyals. ["Neural discrete representation learning."](https://arxiv.org/abs/1711.00937)
