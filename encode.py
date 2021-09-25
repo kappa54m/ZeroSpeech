@@ -9,10 +9,13 @@ from tqdm import tqdm
 import torch
 
 from model import Encoder
+from util import fix_config
 
 
-@hydra.main(config_path="config/encode.yaml")
+@hydra.main(config_path="config", config_name="convert.yaml")
 def encode_dataset(cfg):
+    cfg = fix_config(cfg)
+
     out_dir = Path(utils.to_absolute_path(cfg.out_dir))
     out_dir.mkdir(exist_ok=True, parents=True)
 
@@ -46,7 +49,7 @@ def encode_dataset(cfg):
 
     for _, _, _, path in tqdm(metadata):
         path = root_path.parent / path
-        mel = torch.from_numpy(np.load(path.with_suffix(".mel.npy"))).unsqueeze(0).to(device)
+        mel = torch.from_numpy(np.load(path.with_suffix(".mel.npy")).astype(np.float32)).unsqueeze(0).to(device)
         with torch.no_grad():
             z, indices = encoder.encode(mel)
 
