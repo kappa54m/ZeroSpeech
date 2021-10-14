@@ -15,6 +15,15 @@ from model import Encoder, Decoder
 from util import fix_config
 
 
+def load_speaker_encoder(device):
+    from speaker_encoding import SpeakerEncoder
+
+    weights_fp = Path(__file__).resolve().parent.joinpath(
+        "speaker_encoding/pretrained.pt")
+    speaker_encoder = SpeakerEncoder(device=device, weights_fpath=weights_fp)
+    return speaker_encoder
+
+
 @hydra.main(config_path="config", config_name="convert.yaml")
 def convert(cfg):
     cfg = fix_config(cfg)
@@ -31,6 +40,10 @@ def convert(cfg):
     out_dir.mkdir(exist_ok=True, parents=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    speaker_encoder = None
+    if not cfg.model.speaker_embedding.use_basic_speaker_embedding:
+        speaker_encoder = load_speaker_encoder(device)
 
     encoder = Encoder(**cfg.model.encoder)
     decoder = Decoder(**cfg.model.decoder)
@@ -69,7 +82,10 @@ def convert(cfg):
         logmel = logmel / cfg.preprocessing.top_db + 1
 
         mel = torch.FloatTensor(logmel).unsqueeze(0).to(device)
-        speaker = torch.LongTensor([speakers.index(speaker_id)]).to(device)
+        if speaker_encoder is not None:
+            speaker = torch.FloatTensor(speaker_encoder.embed_utterance(wav)).to(device)
+        else:
+            speaker = torch.LongTensor([speakers.index(speaker_id)]).to(device)
         with torch.no_grad():
             z, _ = encoder.encode(mel)
             output = decoder.generate(z, speaker)

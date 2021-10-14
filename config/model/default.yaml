@@ -15,3 +15,6 @@ model:
         fc_channels: 256
         bits: ${preprocessing.bits}
         hop_length: ${preprocessing.hop_length}
+        use_basic_speaker_embedder: ${model.speaker_embedding.use_basic_speaker_embedding}
+    speaker_embedding:
+        use_basic_speaker_embedding: false

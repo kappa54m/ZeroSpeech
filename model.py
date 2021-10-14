@@ -141,7 +141,8 @@ class VQEmbeddingEMA(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, in_channels, n_speakers, speaker_embedding_dim,
+    def __init__(self, in_channels,
+                 n_speakers, use_basic_speaker_embedder, speaker_embedding_dim,
                  conditioning_channels, mu_embedding_dim, rnn_channels,
                  fc_channels, bits, hop_length):
         super().__init__()
@@ -149,7 +150,13 @@ class Decoder(nn.Module):
         self.quantization_channels = 2**bits
         self.hop_length = hop_length
 
-        self.speaker_embedding = nn.Embedding(n_speakers, speaker_embedding_dim)
+        self.use_default_speaker_embedder = use_basic_speaker_embedder
+        if use_basic_speaker_embedder:
+            self.speaker_embedding = nn.Embedding(n_speakers, speaker_embedding_dim)
+        else:
+            from speaker_encoding import encoding_size
+            self.speaker_embedding = nn.Linear(encoding_size, speaker_embedding_dim)
+
         self.rnn1 = nn.GRU(in_channels + speaker_embedding_dim, conditioning_channels,
                            num_layers=2, batch_first=True, bidirectional=True)
         self.mu_embedding = nn.Embedding(self.quantization_channels, mu_embedding_dim)
@@ -184,6 +191,8 @@ class Decoder(nn.Module):
         z = z.transpose(1, 2)
 
         speaker = self.speaker_embedding(speaker)
+        if speaker.dim() == 1:
+            speaker = speaker.unsqueeze(0)
         speaker = speaker.unsqueeze(1).expand(-1, z.size(1), -1)
 
         z = torch.cat((z, speaker), dim=-1)
