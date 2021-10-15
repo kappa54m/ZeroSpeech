@@ -114,7 +114,47 @@ The ABX score for the pretrained english model (available [here](https://github.
 }
 ```
 
-## References
+# Speaker Encoding
+## Quick Start
+1. [bshall/ZeroSpeech Releases](https://github.com/bshall/ZeroSpeech/releases/tag/v0.1)에서 `datasets.zip`을 다운받아서 프로젝트 폴더 안에 압축 해제합니다($PROJECTROOT/datasets/2019/...).
+2. 기존 전처리에 추가로 Speaker Encoder의 벡터를 전처리합니다.
+
+- Speaker Encoding 활성화
+```
+python preprocess.py in_dir=path/to/dataset dataset=2019/english preprocessing.preprocessing.encode_speakers=true
+```
+
+- 기존 모델
+```
+python preprocess.py in_dir=path/to/dataset dataset=2019/english preprocessing.preprocessing.encode_speakers=false
+```
+
+3. 트레이닝
+
+- Speaker Encoding 활성화
+```
+python train.py checkpoint_dir=path/to/checkpoint_dir dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
+```
+
+- 기존 모델
+```
+python train.py checkpoint_dir=path/to/checkpoint_dir dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=true
+```
+
+4. 테스트
+
+- Speaker Encoding 활성화
+```
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english mmodel.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
+```
+
+- 기존 모델
+
+```
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english mmodel.model.speaker_embedding.use_basic_speaker_embedding=true
+```
+
+# References
 
 This work is based on:
 
