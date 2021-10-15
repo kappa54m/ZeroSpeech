@@ -7,10 +7,20 @@ from pathlib import Path
 
 
 class SpeechDataset(Dataset):
-    def __init__(self, root, hop_length, sr, sample_frames):
+    def __init__(self, root, hop_length, sr, sample_frames, encoded_speakers, speaker_encoding_opts=None):
         self.root = Path(root)
         self.hop_length = hop_length
         self.sample_frames = sample_frames
+        self.encoded_speakers = encoded_speakers
+        if encoded_speakers:
+            opts = speaker_encoding_opts or {}
+            self.speaker_encoding_per_speaker = opts.get('per_speaker', False)
+            if self.speaker_encoding_per_speaker:
+                self.speaker_encoding_speakers_dir_rel = opts['speakers_dir']
+        else:
+            self.speaker_encoding_per_speaker = False
+            self.speaker_encoding_speakers_dir_rel = None
+        self.speaker_encoding_speakers_dir_base = None
 
         with open(self.root / "speakers.json") as file:
             self.speakers = sorted(json.load(file))
@@ -37,6 +47,16 @@ class SpeechDataset(Dataset):
         mel = mel[:, pos - 1:pos + self.sample_frames + 1]
         audio = audio[pos * self.hop_length:(pos + self.sample_frames) * self.hop_length + 1]
 
-        speaker = self.speakers.index(path.parts[-2])
+        speaker_id = path.parts[-2]
+        if self.encoded_speakers:
+            if self.speaker_encoding_per_speaker:
+                speakers_dir = self.speaker_encoding_speakers_dir_base / self.speaker_encoding_speakers_dir_rel
+                enc_path = (self.speakers_dir / speaker_id).with_suffix(".enc.npy")
+            else:
+                enc_path = path.with_suffix(".enc.npy")
+            speaker_enc = np.load(enc_path)
+            speaker = torch.FloatTensor(speaker_enc)
+        else:
+            speaker = self.speakers.index(speaker_id)
 
         return torch.LongTensor(audio), torch.FloatTensor(mel), speaker

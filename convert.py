@@ -15,15 +15,6 @@ from model import Encoder, Decoder
 from util import fix_config
 
 
-def load_speaker_encoder(device):
-    from speaker_encoding import SpeakerEncoder
-
-    weights_fp = Path(__file__).resolve().parent.joinpath(
-        "speaker_encoding/pretrained.pt")
-    speaker_encoder = SpeakerEncoder(device=device, weights_fpath=weights_fp)
-    return speaker_encoder
-
-
 @hydra.main(config_path="config", config_name="convert.yaml")
 def convert(cfg):
     cfg = fix_config(cfg)
@@ -43,6 +34,7 @@ def convert(cfg):
 
     speaker_encoder = None
     if not cfg.model.speaker_embedding.use_basic_speaker_embedding:
+        from speaker_encoding import load_speaker_encoder
         speaker_encoder = load_speaker_encoder(device)
 
     encoder = Encoder(**cfg.model.encoder)

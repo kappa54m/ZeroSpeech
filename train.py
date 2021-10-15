@@ -39,6 +39,12 @@ def train_model(cfg):
     writer = SummaryWriter(tensorboard_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    use_basic_speaker_embedding = cfg.model.speaker_embedding.use_basic_speaker_embedding
+    if use_basic_speaker_embedding:
+        print("Using basic speaker embedding")
+    else:
+        print("Using GE2E speaker encoding")
+
     encoder = Encoder(**cfg.model.encoder)
     decoder = Decoder(**cfg.model.decoder)
     encoder.to(device)
@@ -70,7 +76,9 @@ def train_model(cfg):
         root=root_path,
         hop_length=cfg.preprocessing.hop_length,
         sr=cfg.preprocessing.sr,
-        sample_frames=cfg.training.sample_frames)
+        sample_frames=cfg.training.sample_frames,
+        encoded_speakers=not use_basic_speaker_embedding,
+        speaker_encoding_opts=cfg.model.speaker_embedding.options)
 
     dataloader = DataLoader(
         dataset,
