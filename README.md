@@ -145,13 +145,16 @@ python train.py checkpoint_dir=path/to/checkpoint_dir dataset=2019/english model
 
 - Speaker Encoding 활성화
 ```
-python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english mmodel.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
 ```
+
+`synthesis_list`의 두 번째 값으로 기존에는 화자 스트링(예: V001)을 주었는데, 이 모델의 경우 화자의 인코딩이 필요하기 때문에 이 경우에는 추가로 `speaker_encodings_dir` 인자를 추가해야 하는데, 값은 프로젝트 폴더에서의 상대적 경로 또는 절대적 경로로 설정하면 됩니다.
+화자 스트링 대신 `wav` 파일의 경로나 전처리에서 생성되는 `.enc.npy` 파일의 경로를 입력할 수 있습니다. 상대적 경로일 경우 `in_dir` 인자를 부모 폴더로 합니다.
 
 - 기존 모델
 
 ```
-python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english mmodel.model.speaker_embedding.use_basic_speaker_embedding=true
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=true
 ```
 
 # References
