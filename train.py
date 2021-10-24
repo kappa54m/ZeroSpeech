@@ -58,10 +58,16 @@ def train_model(cfg):
         checkpoint = torch.load(resume_path, map_location=lambda storage, loc: storage)
         encoder.load_state_dict(checkpoint["encoder"])
         decoder.load_state_dict(checkpoint["decoder"])
-        optimizer.load_state_dict(checkpoint["optimizer"])
-        amp.load_state_dict(checkpoint["amp"])
-        scheduler.load_state_dict(checkpoint["scheduler"])
-        global_step = checkpoint["step"]
+        if "optimizer" in checkpoint:
+            optimizer.load_state_dict(checkpoint["optimizer"])
+        if "amp" in checkpoint:
+            amp.load_state_dict(checkpoint["amp"])
+        if "scheduler" in checkpoint:
+            scheduler.load_state_dict(checkpoint["scheduler"])
+        if "step" in checkpoint:
+            global_step = checkpoint["step"]
+        else:
+            global_step  = 0
     else:
         global_step = 0
 
