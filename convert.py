@@ -32,6 +32,11 @@ def convert(cfg):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    speaker_encoder = None
+    if not cfg.model.speaker_embedding.use_basic_speaker_embedding:
+        from speaker_encoding import load_speaker_encoder
+        speaker_encoder = load_speaker_encoder(device)
+
     encoder = Encoder(**cfg.model.encoder)
     decoder = Decoder(**cfg.model.decoder)
     encoder.to(device)
@@ -48,13 +53,17 @@ def convert(cfg):
 
     meter = pyloudnorm.Meter(cfg.preprocessing.sr)
 
-    for wav_path, speaker_id, out_filename in tqdm(synthesis_list):
-        wav_path = in_dir / wav_path
-        wav, _ = librosa.load(
-            str(wav_path.with_suffix(".wav")),
+    def load_wav(_path):
+        _wav_path = in_dir / _path
+        _wav, _ = librosa.load(
+            str(_wav_path.with_suffix(".wav")),
             sr=cfg.preprocessing.sr)
-        ref_loudness = meter.integrated_loudness(wav)
-        wav = wav / np.abs(wav).max() * 0.999
+        _ref_loudness = meter.integrated_loudness(_wav)
+        _wav = _wav / np.abs(_wav).max() * 0.999
+        return _wav, _ref_loudness
+
+    for wav_path, speaker_id, out_filename in tqdm(synthesis_list):
+        wav, ref_loudness = load_wav(wav_path)
 
         mel = librosa.feature.melspectrogram(
             preemphasis(wav, cfg.preprocessing.preemph),
@@ -69,7 +78,33 @@ def convert(cfg):
         logmel = logmel / cfg.preprocessing.top_db + 1
 
         mel = torch.FloatTensor(logmel).unsqueeze(0).to(device)
-        speaker = torch.LongTensor([speakers.index(speaker_id)]).to(device)
+        if speaker_encoder is not None:
+            if speaker_id.endswith(".wav"):
+                speaker_wav_path = in_dir / speaker_id
+                print("Computing speaker encoding from: {}".format(speaker_wav_path))
+                enc = speaker_encoder.embed_utterance(load_wav(speaker_wav_path)[0])
+                speaker = torch.FloatTensor(enc)
+            elif speaker_id.endswith(".enc.npy"):
+                enc_path = in_dir / speaker_id
+                print("Loading speaker encoding from: {}".format(enc_path))
+                speaker = torch.FloatTensor(np.load(enc_path))
+            else:
+                encs_dir = Path(cfg.speaker_encodings_dir)
+                if not encs_dir.is_absolute():
+                    encs_dir = utils.to_absolute_path(str(encs_dir))
+                enc_path = next(filter(lambda s: s.name == "{}.enc.npy".format(speaker_id), Path(encs_dir).iterdir()), None)
+                if enc_path:
+                    print("Found encoding for speaker '{}' at: {}. Loading...".format(speaker_id, enc_path))
+                    speaker = torch.FloatTensor(np.load(enc_path))
+                else:
+                    raise ValueError(
+                        "Could not find encoding for speaker '{}' in: {}. "
+                        "Make sure speaker_encodings_dir argument (current value: \"{}\") is set correctly.".format(
+                            speaker_id, encs_dir, cfg.speaker_encodings_dir))
+        else:
+            speaker = torch.LongTensor([speakers.index(speaker_id)])
+        speaker = speaker.to(device)
+
         with torch.no_grad():
             z, _ = encoder.encode(mel)
             output = decoder.generate(z, speaker)

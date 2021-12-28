@@ -8,3 +8,4 @@ preprocessing:
     hop_length: 160
     win_length: 400
     bits: 8
+    encode_speakers: true

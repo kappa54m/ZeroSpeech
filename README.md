@@ -114,7 +114,50 @@ The ABX score for the pretrained english model (available [here](https://github.
 }
 ```
 
-## References
+# Speaker Encoding
+## Quick Start
+1. [bshall/ZeroSpeech Releases](https://github.com/bshall/ZeroSpeech/releases/tag/v0.1)에서 `datasets.zip`을 다운받아서 프로젝트 폴더 안에 압축 해제합니다($PROJECTROOT/datasets/2019/...).
+2. 기존 전처리에 추가로 Speaker Encoder의 벡터를 전처리합니다.
+
+- Speaker Encoding 활성화
+```
+python preprocess.py in_dir=path/to/dataset dataset=2019/english preprocessing.preprocessing.encode_speakers=true
+```
+
+- 기존 모델
+```
+python preprocess.py in_dir=path/to/dataset dataset=2019/english preprocessing.preprocessing.encode_speakers=false
+```
+
+3. 트레이닝
+
+- Speaker Encoding 활성화
+```
+python train.py checkpoint_dir=path/to/checkpoint_dir dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
+```
+
+- 기존 모델
+```
+python train.py checkpoint_dir=path/to/checkpoint_dir dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=true
+```
+
+4. 테스트
+
+- Speaker Encoding 활성화
+```
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=false model.model.speaker_embedding.options.per_speaker=false
+```
+
+`synthesis_list`의 두 번째 값으로 기존에는 화자 스트링(예: V001)을 주었는데, 이 모델의 경우 화자의 인코딩이 필요하기 때문에 이 경우에는 추가로 `speaker_encodings_dir` 인자를 추가해야 하는데, 값은 프로젝트 폴더에서의 상대적 경로 또는 절대적 경로로 설정하면 됩니다.
+화자 스트링 대신 `wav` 파일의 경로나 전처리에서 생성되는 `.enc.npy` 파일의 경로를 입력할 수 있습니다. 상대적 경로일 경우 `in_dir` 인자를 부모 폴더로 합니다.
+
+- 기존 모델
+
+```
+python convert.py checkpoint=path/to/checkpoint in_dir=path/to/wavs out_dir=path/to/out_dir synthesis_list=path/to/synthesis_list dataset=2019/english model.model.speaker_embedding.use_basic_speaker_embedding=true
+```
+
+# References
 
 This work is based on:
 

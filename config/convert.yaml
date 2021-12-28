@@ -8,3 +8,4 @@ in_dir: ???
 out_dir: ???
 checkpoint: ???
 save_auxiliary: 1
+speaker_encodings_dir: ''
