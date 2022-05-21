@@ -1,3 +1,7 @@
+# Introduction
+This project is a fork of [VQ-VAE for Acoustic Unit Discovery and Voice Conversion](https://github.com/bshall/ZeroSpeech), an entry to Google's [ZeroSpeech 2020 challenge](https://zerospeech.com/). We aim to improve upon the results of the original project.
+
+
 # VQ-VAE for Acoustic Unit Discovery and Voice Conversion
 
 Train and evaluate the VQ-VAE model for our submission to the [ZeroSpeech 2020 challenge](https://zerospeech.com/).
